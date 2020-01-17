@@ -3,17 +3,26 @@
 #include <alloca.h>
 #include <assert.h>
 
-void printP(const int*p, const unsigned int size) 
-{
-    int bLeading0 = 1;
-    for(const int *i = p + size - 1; i >= p; i--)
-    {
-        if (bLeading0 && *i == 0) continue;
-        bLeading0 = 0;
-        printf("%d", *i);
+void carryAndPrint(int *p, const unsigned int size) {
+    // moving forward calculate carry
+    int *k = p;
+    int carry = 0;
+    for(;k < p + size; k++) {
+        *k += carry;
+        if( *k > 9) {
+            carry = *k / 10;
+            *k %= 10;
+        } else carry = 0;
     }
+    assert(carry==0);
+    k--;
 
-    if (bLeading0) printf("0");
+    // moving back, print
+    // skip leading zeros
+    for(;k>p;k--) {
+        if(*k!=0) break;
+    }
+    for(;k>=p;k--) printf("%d",*k);
     printf("\n");
 }
 
@@ -27,20 +36,12 @@ void multiply(char *a, const int aSize, char *b, const int bSize, int *p, unsign
         cursor++;
         if (*pa == '0') continue;
 
-        int carry = 0;
         for(char *pb = b + bSize-1; pb >= b; pb--)
         {
             assert(karet < &(p[pSize]));
-            const int product = (*pa - '0') * (*pb - '0');
-            *karet += product + carry;
-            if(*karet>9) {
-                const int digit = *karet % 10;
-                carry = *karet / 10;
-                *karet = digit;
-            } else carry = 0;
+            *karet += (*pa - '0') * (*pb - '0');
             karet++;
         }
-        if (carry) *karet = carry;
     }
 }
 
@@ -54,7 +55,7 @@ int mln(char *a, char *b) {
 
     multiply(a, aSize, b, bSize, p, pSize);
 
-    printP(p, pSize);
+    carryAndPrint(p, pSize);
 
     return 0;
 }
