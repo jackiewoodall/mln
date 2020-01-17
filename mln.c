@@ -3,45 +3,43 @@
 #include <alloca.h>
 #include <assert.h>
 
-void carryAndPrint(int *p, const unsigned int size) {
-    // moving forward calculate carry
-    int *k = p;
-    int carry = 0;
-    for(;k < p + size; k++) {
-        *k += carry;
-        if( *k > 9) {
-            carry = *k / 10;
-            *k %= 10;
-        } else carry = 0;
-    }
-    assert(carry==0);
-    k--;
-
-    // moving back, print
+void print(int *p, const unsigned int size) {
     // skip leading zeros
-    for(;k>p;k--) {
-        if(*k!=0) break;
-    }
+    const int *k = p + size-1;
+    for(;k>p && !*k;k--) ;
     for(;k>=p;k--) printf("%d",*k);
     printf("\n");
 }
 
 void multiply(char *a, const int aSize, char *b, const int bSize, int *p, unsigned int pSize) 
 {
-    int *cursor = p;
+    int *cursor = p, *karet;
+    int carry = 0;
     for(char *pa = a + aSize-1; pa >= a; pa--) 
     {
         assert(cursor < &(p[pSize]));
-        int *karet = cursor;
+        karet = cursor;
         cursor++;
         if (*pa == '0') continue;
 
-        for(char *pb = b + bSize-1; pb >= b; pb--)
+        for(char *pb = b + bSize-1; pb >= b; pb--,karet++)
         {
             assert(karet < &(p[pSize]));
             *karet += (*pa - '0') * (*pb - '0');
-            karet++;
+
+            // process carry if first digit from b or last digit from a
+            if(pb == b+bSize-1 || pa == a) {
+                *karet += carry;
+                if(*karet>9) {
+                    carry = *karet / 10;
+                    *karet %= 10;
+                } else carry = 0;
+            }
         }
+    }
+    if(carry) {
+        assert(karet < &(p[pSize]));
+        *karet = carry;
     }
 }
 
@@ -55,7 +53,7 @@ int mln(char *a, char *b) {
 
     multiply(a, aSize, b, bSize, p, pSize);
 
-    carryAndPrint(p, pSize);
+    print(p, pSize);
 
     return 0;
 }
