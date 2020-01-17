@@ -1,6 +1,12 @@
 mln: mln.c
 	clang -o mln mln.c
 
+release: mln.c
+	clang -DNDEBUG -Ofast -o mln mln.c
+
+clean:
+	rm mln
+
 test:
 	echo 0; ./mln 9 0
 	echo 72; ./mln 9 8
